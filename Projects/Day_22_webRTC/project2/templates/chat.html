@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat - Real-Time Chat</title>
+    <link rel="stylesheet" href="/static/css/chat.css">
+</head>
+<body>
+    <div class="chat-container">
+        <!-- Left Sidebar: User List -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>Users</h2>
+                <div class="status" id="connection-status">Connected</div>
+            </div>
+            
+            <!-- Search Box -->
+            <div class="search-box">
+                <input type="text" id="user-search" placeholder="Search users...">
+                <button onclick="searchUsers()">Search</button>
+            </div>
+            
+            <!-- User List -->
+            <div class="user-list" id="user-list">
+                <p class="loading">Loading users...</p>
+            </div>
+        </div>
+        
+        <!-- Right: Chat Area -->
+        <div class="chat-area">
+            <div class="chat-header">
+                <h3 id="chat-with">Select a user to chat</h3>
+                <span id="user-status"></span>
+            </div>
+            
+            <!-- Messages -->
+            <div class="chat-messages" id="chat-messages">
+                <p class="placeholder">Select a user to start chatting</p>
+            </div>
+            
+            <!-- Input -->
+            <div class="chat-input">
+                <input type="text" id="message-input" placeholder="Type message..." disabled>
+                <button onclick="sendMessage()" id="send-btn" disabled>Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================= -->
+    <!-- INCOMING CALL NOTIFICATION MODAL (NEW) -->
+    <!-- ============================================= -->
+    <div class="incoming-call-modal hidden" id="incoming-call-modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-container">
+            <!-- Caller Avatar/Icon -->
+            <div class="caller-avatar">
+                <div class="avatar-circle">
+                    <span id="caller-avatar-text">👤</span>
+                </div>
+            </div>
+            
+            <!-- Caller Info -->
+            <div class="caller-info">
+                <h2 id="caller-name-display">Unknown User</h2>
+                <p id="call-type-display">Incoming Call...</p>
+                <div class="call-status-indicator">
+                    <span class="pulse-dot"></span>
+                    <span>Calling you...</span>
+                </div>
+            </div>
+            
+            <!-- Call Actions (Accept/Reject) -->
+            <div class="call-actions-container">
+                <!-- Reject Button -->
+                <button onclick="rejectCall()" class="action-btn reject-btn" id="reject-call-btn" title="Decline Call">
+                    <span class="btn-icon">📞</span>
+                    <span class="btn-label">Decline</span>
+                </button>
+                
+                <!-- Accept Button -->
+                <button onclick="acceptCall()" class="action-btn accept-btn" id="accept-call-btn" title="Accept Call">
+                    <span class="btn-icon">📞</span>
+                    <span class="btn-label">Accept</span>
+                </button>
+            </div>
+            
+            <!-- Ringing Animation -->
+            <div class="ringing-animation">
+                <div class="ring-ring"></div>
+                <div class="ring-ring"></div>
+                <div class="ring-ring"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================= -->
+    <!-- ACTIVE CALL OVERLAY (Shown during call) -->
+    <!-- ============================================= -->
+    <div class="call-overlay hidden" id="call-overlay">
+        <div class="call-content">
+            <!-- Video Area -->
+            <div class="video-area">
+                <video id="remote-video" autoplay playsinline></video>
+                <video id="local-video" autoplay muted playsinline></video>
+            </div>
+            
+            <!-- Call Info -->
+            <div class="call-info">
+                <h2 id="call-with-user">Calling...</h2>
+                <p id="call-status">Connecting...</p>
+                <p id="call-timer">00:00</p>
+            </div>
+            
+            <!-- Call Controls -->
+            <div class="call-controls">
+                <button onclick="toggleMute()" id="mute-btn" class="control-btn" title="Toggle Mute">
+                    🔇
+                </button>
+                <button onclick="toggleVideo()" id="video-btn" class="control-btn" title="Toggle Video" style="display:none;">
+                    📹
+                </button>
+                <button onclick="endCall()" class="control-btn end-btn" title="End Call">
+                    📞
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/chat.js"></script>
+</body>
+</html>

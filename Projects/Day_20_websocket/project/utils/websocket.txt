@@ -1,0 +1,160 @@
+# utils/websocket_manager.py
+
+from fastapi import WebSocket, Depends
+from sqlalchemy.orm import Session
+from database import get_db
+from models.user import User
+from jose import jwt
+from config.config import SECRET_KEY, ALGORITHM
+from typing import Dict, List
+import asyncio
+
+# ═══════════════════════════════════════════════════════════════════
+# CONNECTION MANAGER CLASS
+# ═══════════════════════════════════════════════════════════════════
+# This class manages all WebSocket connections. Think of it like a
+# phone operator who keeps track of who is on which call. It stores
+# connections in two ways: (1) grouped by organization ID so we can
+# broadcast to entire teams, and (2) by user ID so we can send
+# private messages to specific people. This enables tenant isolation
+# where org_1 users never receive notifications from org_2.
+
+class WebSocketManager:
+    def __init__(self):
+        # Stores connections grouped by organization: {org_id: [ws1, ws2]}
+        # This keeps different organizations separate (multi-tenant security)
+        self.active_connections: Dict[int, List[WebSocket]] = {}
+        
+        # Stores connections by user ID: {user_id: websocket}
+        # This lets us send private messages to specific users
+        self.user_connections: Dict[int, WebSocket] = {}
+    
+    async def connect(self, websocket: WebSocket, user: User):
+        # This method accepts the WebSocket handshake and registers the user.
+        # When a client connects, we first accept the connection (which upgrades
+        # from HTTP to WebSocket protocol), then we store the connection in
+        # both dictionaries so we can find it later for sending messages.
+        await websocket.accept()
+        org_id = user.org_id or 0  # Use 0 for super_admin who has no org
+        if org_id not in self.active_connections:
+            self.active_connections[org_id] = []
+        self.active_connections[org_id].append(websocket)
+        self.user_connections[user.id] = websocket
+    
+    def disconnect(self, websocket: WebSocket, user: User):
+        # This method cleans up when a user disconnects. We remove their
+        # connection from both dictionaries so we don't try to send
+        # messages to a closed connection (which would cause errors).
+        org_id = user.org_id or 0
+        if org_id in self.active_connections:
+            self.active_connections[org_id].remove(websocket)
+        if user.id in self.user_connections:
+            del self.user_connections[user.id]
+    
+    async def send_personal_message(self, message: dict, user_id: int):
+        # This sends a message to ONE specific user (like a private DM).
+        # We look up their WebSocket connection by user_id and send JSON.
+        # If they're not connected (closed browser), nothing happens.
+        if user_id in self.user_connections:
+            await self.user_connections[user_id].send_json(message)
+    
+    async def broadcast_to_org(self, message: dict, org_id: int):
+        # This sends a message to ALL users in an organization (like a
+        # team announcement). We loop through all connections for that
+        # org_id and send the same message to each. This maintains
+        # tenant isolation - org_1 never sees org_2's notifications.
+        if org_id in self.active_connections:
+            for connection in self.active_connections[org_id]:
+                await connection.send_json(message)
+
+# ═══════════════════════════════════════════════════════════════════
+# CREATE SINGLE MANAGER INSTANCE
+# ═══════════════════════════════════════════════════════════════════
+# We create ONE global manager that all routes will use. This is like
+# having a single phone system for the entire company. Every route
+# that needs WebSocket will import this manager and use it.
+
+ws_manager = WebSocketManager()
+
+# ═══════════════════════════════════════════════════════════════════
+# WEBSOCKET ENDPOINT FUNCTION
+# ═══════════════════════════════════════════════════════════════════
+# This is THE route that handles WebSocket connections. It lives in
+# this util file (not a router) for simplicity. When a client wants
+# to connect via WebSocket, they connect to /ws with their JWT token.
+# This function validates the token, finds the user, and registers
+# the connection with the manager. After that, it listens for messages.
+
+async def websocket_endpoint(websocket: WebSocket):
+    # The client connects with a token like: ws://localhost:8000/ws?token=eyJhbG...
+    # We extract the token from the query parameters (the part after ?)
+    token = websocket.query_params.get("token")
+    
+    if not token:
+        # No token means we can't authenticate, so we close the connection
+        # with error code 4000 (custom code meaning "missing token")
+        await websocket.close(code=4000)
+        return
+    
+    try:
+        # Decode and validate the JWT token using the same SECRET_KEY
+        # you use for HTTP authentication. This ensures the user is
+        # legitimate and the token hasn't expired or been tampered with.
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: int = payload.get("id")
+        
+        if not user_id:
+            await websocket.close(code=4001)
+            return
+        
+        # Query the database to get the user object. We need this to
+        # know their org_id for tenant isolation and to verify they
+        # still exist (user might have been deleted after token was issued).
+        from database import SessionLocal
+        db = SessionLocal()
+        user = db.query(User).filter(User.id == user_id).first()
+        db.close()
+        
+        if not user:
+            await websocket.close(code=4002)
+            return
+        
+        # Register this connection with the manager. Now the system
+        # knows this user is connected and can send them notifications.
+        await ws_manager.connect(websocket, user)
+        
+        # Send a welcome message so the client knows they're connected.
+        # This is optional but helpful for debugging.
+        await websocket.send_json({
+            "type": "connected",
+            "user_id": user.id,
+            "org_id": user.org_id
+        })
+        
+        # This infinite loop keeps the connection alive and listens for
+        # any messages from the client. The loop runs forever until the
+        # client disconnects (which raises WebSocketDisconnect exception).
+        # You can add message handling here if you want clients to send
+        # commands (like "subscribe to project 5").
+        try:
+            while True:
+                # Wait for message from client (blocks until message arrives)
+                data = await websocket.receive_json()
+                
+                # You can process client messages here. For now, we just
+                # acknowledge receipt. You could add features like:
+                # - Subscribe to specific project updates
+                # - Mark notification as read
+                # - Send chat messages to teammates
+                await websocket.send_json({
+                    "type": "ack",
+                    "data": data
+                })
+        
+        except Exception:
+            # Client disconnected - clean up their connection from manager
+            ws_manager.disconnect(websocket, user)
+    
+    except Exception as e:
+        # Any other error (invalid token, database error, etc.)
+        await websocket.close(code=4003)

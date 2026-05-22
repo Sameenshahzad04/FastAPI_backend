@@ -1,0 +1,140 @@
+* { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+    font-family: 'Segoe UI', Arial, sans-serif; 
+}
+
+body { 
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.auth-container {
+    width: 100%;
+    max-width: 450px;
+}
+
+.auth-box { 
+    background: white; 
+    padding: 40px; 
+    border-radius: 15px; 
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3); 
+}
+
+.auth-box h1 { 
+    text-align: center; 
+    color: #333; 
+    margin-bottom: 10px; 
+    font-size: 28px;
+}
+
+.subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 30px;
+    font-size: 14px;
+}
+
+.form-group { 
+    margin-bottom: 20px; 
+}
+
+.form-group label { 
+    display: block; 
+    margin-bottom: 8px; 
+    color: #333; 
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.form-group input { 
+    width: 100%; 
+    padding: 12px 15px; 
+    border: 2px solid #ddd; 
+    border-radius: 8px; 
+    font-size: 16px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-group input:focus { 
+    outline: none; 
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group .hint {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    color: #999;
+}
+
+.btn { 
+    width: 100%; 
+    padding: 14px; 
+    border: none; 
+    border-radius: 8px; 
+    font-size: 16px; 
+    font-weight: 600; 
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-primary:hover { 
+    transform: scale(1.02);
+    box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-primary:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.error { 
+    color: #f44336; 
+    margin-top: 15px; 
+    text-align: center; 
+    font-size: 14px;
+    padding: 10px;
+    background: #ffebee;
+    border-radius: 6px;
+}
+
+.success { 
+    color: #4CAF50; 
+    margin-top: 15px; 
+    text-align: center; 
+    font-size: 14px;
+    padding: 10px;
+    background: #e8f5e9;
+    border-radius: 6px;
+}
+
+.switch-form { 
+    text-align: center; 
+    margin-top: 25px; 
+    color: #666; 
+    font-size: 14px;
+}
+
+.switch-form a { 
+    color: #667eea; 
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.switch-form a:hover {
+    text-decoration: underline;
+}

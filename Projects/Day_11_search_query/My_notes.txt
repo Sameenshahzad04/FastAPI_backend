@@ -1,0 +1,117 @@
+what is pagination ?
+
+10,000 element
+we want to retrive this data from api ,defualt behaviour 
+select all 10,000 element and send back to user
+
+1)it will put lot of effort on db t retrive data 
+2)send alot of data to client ---api reponse slow down large data 
+
+
+when you're dealing with large datasets in APIs. It lets you split results into smaller,
+manageable chunks (like "Page 1", "Page 2", etc.), improving performance and user experience.
+
+
+method
+
+1) split data into group of pages  e.g 100 send that group to clien 
+most visit go to page 1 like google search
+
+
+if you reduce data then it will more requests to server to get that certian data
+
+***request count increase
+
+
+idea of page size
+client hoice request count
+
+
+********************
+
+APi structure for pagination api
+
+
+{  "data":[...],"count":432,"next":next page url,"pre":url of pre page }
+
+Types of pagination
+
+-----offset based
+
+-this will use page attribut
+-or use offset+limit
+
+get/commets?page=3
+
+req go to backendd and backend have attribute page size =20
+page 1=1-20
+p2=21-40
+p3=41-60
+next page =4
+
+
+
+db query 
+
+page=3
+
+select * from comments 
+order by id
+limit(page size) 20
+offset(how many rows skip) 40
+
+
+offset=(page-1)*pagesize
+
+it show 41 onward comment
+
+disadvantages
+offset represnet rows to skips
+e.get
+
+123|456|78910
+
+offset =3
+
+delete some data
+125|678|910
+
+7 and 8 got skip 
+
+if we add|remove  data  that is going to shift
+ where we start and skips some important data while navigation
+
+
+-cursor based
+
+=pointer to last record seen
+ignore  any add,delete data
+because donot use offset,as it is just identifing specific row and then going
+
+while user seeing data
+
+user seeing page 6
+cursor point last seen =6
+
+1 2 3 4 5 "6" 7 8 9
+
+now while seeing if some data remove or add pointer still point to that page
+now when go to next it go to 7
+1 2 5 "6" 7 8 9 10
+
+
+/cooments?afetr_id=123
+
+response
+
+"next":/comments?after_id =1234
+
+
+limitation
+=unique,not null,unchanging,indexed
+
+
+
+
+
+

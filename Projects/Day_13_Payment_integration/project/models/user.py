@@ -1,0 +1,39 @@
+# models/user.py
+
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, DateTime
+from sqlalchemy.orm import relationship
+from database import Base
+from datetime import datetime, timezone
+from models.project import Project
+from models.organization import Organization
+from models.task import Task
+from models.role import Role
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, nullable=False)
+    email = Column(String, nullable=False, unique=True)
+    password = Column(String, nullable=False)
+    org_id = Column(Integer, ForeignKey("organization.id"))
+    role_name = Column(String, ForeignKey("roles.role_name"))
+    role = relationship("Role", back_populates="users")
+    
+    
+
+    # Payment fields
+    stripe_payment_method_id = Column(String)
+    pricing_plan = Column(String, default="basic")
+    is_active = Column(Boolean, default=False)
+    first_login_done = Column(Boolean, default=False)
+    stripe_customer_id = Column(String)
+    stripe_subscription_id = Column(String)
+   #  created_at = Column(DateTime, default=datetime.now(timezone.utc))
+  
+
+ # Projects created by admin
+    owned_projects = relationship("Project", back_populates="owner", foreign_keys="Project.owner_id")
+    owned_organizations = relationship("Organization", back_populates="owner", foreign_keys="Organization.owner_id")
+    # Projects assigned to user
+    assigned_tasks= relationship("Task", back_populates="assigned_user", foreign_keys="Task.assigned_to")
+    

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Chat</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="login-container" id="login-screen">
+        <div class="login-box">
+            <h1>Chat App</h1>
+            <form id="login-form">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="username" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit" class="btn">Login</button>
+                <p class="error" id="login-error"></p>
+            </form>
+            <p class="switch-form">
+                         Don't have an account? 
+                        <a href="/register.html">Register here</a>
+            </p>
+        </div>
+    </div>
+
+    <div class="chat-container hidden" id="chat-screen">
+        <div class="chat-header">
+            <h2>Team Chat</h2>
+            <div class="status" id="connection-status"> Connected</div>
+        </div>
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-input">
+            <input type="text" id="message-input" placeholder="Type message...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script src="/static/js/login.js"></script>
+</body>
+</html>
